@@ -1,12 +1,8 @@
 package main
 
-import (
-	"fmt"
-
-	"github.com/EmperorLeo/adventofcode2019/day2"
-)
+import "github.com/EmperorLeo/adventofcode2019/day3"
 
 func main() {
-	fmt.Println(day2.Silver())
-	fmt.Println(day2.Gold())
+	day3.Silver()
+	day3.Gold()
 }

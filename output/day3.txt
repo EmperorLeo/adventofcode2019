@@ -1,0 +1,2 @@
+Best intersection is {-39, -170} with distance of 209
+Least steps intersection is {2667, 1251} with distance of 43258
