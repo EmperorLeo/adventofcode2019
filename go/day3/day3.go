@@ -62,6 +62,7 @@ func Silver() {
 			if wLine.Intersects(xLine) {
 				// Find the intersection and append it
 				intersection := wLine.Intersection(xLine)
+				intersection.Print()
 
 				// If this is the closest intersection so far to the origin, update the best coord
 				dist := origin.Manhattan(intersection)
@@ -74,6 +75,7 @@ func Silver() {
 				wRunning -= (wLine.Length() - wLine.P1.Manhattan(intersection))
 				xRunning -= (xLine.Length() - xLine.P1.Manhattan(intersection))
 				// replace lowest steps coord if applicable
+				fmt.Printf("Running length is %d\n", wRunning+xRunning)
 				if wRunning+xRunning < lowestSteps && intersection != origin {
 					lowestStepsCoord = intersection
 					lowestSteps = wRunning + xRunning
