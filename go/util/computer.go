@@ -2,99 +2,91 @@ package util
 
 import (
 	"errors"
-	"strconv"
 )
 
+/*Computer represents a basic cpu simulation */
 type Computer struct {
-	Ip  int
-	Mem []int
+	ip    int
+	mem   []int
+	input chan int
 }
 
+/*Output represents the computer output */
 type Output struct {
 	Out int
 }
 
+/*Next executes the next instruction, and returns the next output, if any */
 func (c *Computer) Next() (*Output, error) {
-	/* Implement mathy version later */
-	// posOneMode := c.ip - (c.ip / 1000) - ((c.ip / 10000) * 10000)
-	// posTwoMode := c.ip
-	// posThreeMode :=
-	// fmt.Printf("My IP = %d\n", c.Ip)
-	op := c.Mem[c.Ip]
-	strOP := strconv.Itoa(op)
-	posOneMode := len(strOP) > 2 && strOP[len(strOP)-3] == '1'
-	posTwoMode := len(strOP) > 3 && strOP[len(strOP)-4] == '1'
-	posThreeMode := len(strOP) > 4 && strOP[len(strOP)-5] == '1'
-	// fmt.Printf("Modes: %v, %v, %v\n", posOneMode, posTwoMode, posThreeMode)
+	op := c.mem[c.ip]
+	posOneMode := op%1000 >= 100
+	posTwoMode := op%10000 >= 1000
+	posThreeMode := op%100000 >= 10000
 
 	opcode := op % 100
+	numArgs := getNumArgs(opcode)
 
 	var arg1, arg2, arg3 int
-	if c.Ip+1 <= len(c.Mem)-1 {
-		arg1 = c.Mem[c.Ip+1]
-		// fmt.Printf("Arg1 Immediate: %d\n", arg1)
-		if !posOneMode && opcode != 3 {
-			arg1 = c.Mem[arg1]
+	if numArgs >= 1 && c.ip+1 <= len(c.mem)-1 {
+		arg1 = c.mem[c.ip+1]
+		if !posOneMode && !alwaysImmediateMode(opcode, 1) {
+			arg1 = c.mem[arg1]
 		}
 	}
-	if c.Ip+2 <= len(c.Mem)-1 {
-		// fmt.Printf("Arg2 Immediate: %d\n", arg2)
-		arg2 = c.Mem[c.Ip+2]
-		if !posTwoMode && opcode != 3 && opcode != 4 {
-			arg2 = c.Mem[arg2]
+	if numArgs >= 2 && c.ip+2 <= len(c.mem)-1 {
+		arg2 = c.mem[c.ip+2]
+		if !posTwoMode && !alwaysImmediateMode(opcode, 2) {
+			arg2 = c.mem[arg2]
 		}
 	}
-	if c.Ip+3 <= len(c.Mem)-1 {
-		// fmt.Printf("Arg3 Immediate: %d\n", arg3)
-		arg3 = c.Mem[c.Ip+3]
-		if !posThreeMode && opcode != 1 && opcode != 2 && opcode != 3 && opcode != 4 && opcode != 5 && opcode != 6 && opcode != 7 && opcode != 8 {
-			arg3 = c.Mem[arg3]
+	if numArgs >= 3 && c.ip+3 <= len(c.mem)-1 {
+		arg3 = c.mem[c.ip+3]
+		if !posThreeMode && !alwaysImmediateMode(opcode, 3) {
+			arg3 = c.mem[arg3]
 		}
 	}
 
 	switch opcode {
 	case 1:
-		// fmt.Printf("Executing %d + %d to equal %d, placing in position %d\n", arg1, arg2, arg1+arg2, arg3)
-		c.Mem[arg3] = arg1 + arg2
-		c.Ip += 4
+		c.mem[arg3] = arg1 + arg2
+		c.ip += 4
 	case 2:
-		c.Mem[arg3] = arg1 * arg2
-		c.Ip += 4
+		c.mem[arg3] = arg1 * arg2
+		c.ip += 4
 	case 3:
-		// fmt.Printf("Putting 1 into position %d", arg1)
-		c.Mem[arg1] = c.requestInput()
-		c.Ip += 2
+		c.mem[arg1] = c.requestInput()
+		c.ip += 2
 	case 4:
-		c.Ip += 2
+		c.ip += 2
 		return &Output{arg1}, nil
 	case 5:
 		if arg1 != 0 {
-			c.Ip = arg2
+			c.ip = arg2
 		} else {
-			c.Ip += 3
+			c.ip += 3
 		}
 	case 6:
 		if arg1 == 0 {
-			c.Ip = arg2
+			c.ip = arg2
 		} else {
-			c.Ip += 3
+			c.ip += 3
 		}
 	case 7:
 		if arg1 < arg2 {
-			c.Mem[arg3] = 1
+			c.mem[arg3] = 1
 		} else {
-			c.Mem[arg3] = 0
+			c.mem[arg3] = 0
 		}
-		c.Ip += 4
+		c.ip += 4
 	case 8:
 		if arg1 == arg2 {
-			c.Mem[arg3] = 1
+			c.mem[arg3] = 1
 		} else {
-			c.Mem[arg3] = 0
+			c.mem[arg3] = 0
 		}
-		c.Ip += 4
+		c.ip += 4
 	case 99:
-		return nil, errors.New("Program halted")
+		return nil, errors.New("program halted")
 	default:
 		return nil, errors.New("massive error")
 	}
@@ -102,6 +94,64 @@ func (c *Computer) Next() (*Output, error) {
 	return nil, nil
 }
 
+/*LoadInstructions - this initializes the computer with instructions */
+func (c *Computer) LoadInstructions(instructions []int) {
+	c.mem = instructions
+	c.input = make(chan int)
+}
+
+/*Type - Please run this in another goroutine lol*/
+func (c *Computer) Type(in int) {
+	c.input <- in
+}
+
+/*GetMem - Gets the memory value at the index*/
+func (c *Computer) GetMem(at int) int {
+	return c.mem[at]
+}
+
 func (c *Computer) requestInput() int {
-	return 5
+	return <-c.input
+}
+
+func getNumArgs(opcode int) int {
+	var numArgs int
+	switch opcode {
+	case 3:
+		fallthrough
+	case 4:
+		numArgs = 1
+		break
+	case 5:
+		fallthrough
+	case 6:
+		numArgs = 2
+		break
+	case 1:
+		fallthrough
+	case 2:
+		fallthrough
+	case 7:
+		fallthrough
+	case 8:
+		numArgs = 3
+		break
+	case 99:
+	default:
+	}
+
+	return numArgs
+}
+
+func alwaysImmediateMode(opcode, argNum int) bool {
+	var always bool
+	switch argNum {
+	case 1:
+		always = opcode == 3
+	case 2:
+	case 3:
+		always = opcode == 1 || opcode == 2 || opcode == 7 || opcode == 8
+	default:
+	}
+	return always
 }

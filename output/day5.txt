@@ -1,1 +1,13 @@
+Output: 0
+Output: 0
+Output: 0
+Output: 0
+Output: 0
+Output: 0
+Output: 0
+Output: 0
+Output: 0
+Output: 9006673
+Program Terminated: Reason - Program halted
 Output: 3629692
+Program Terminated: Reason - Program halted
