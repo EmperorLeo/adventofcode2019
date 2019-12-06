@@ -2,22 +2,19 @@ package util
 
 import (
 	"errors"
+	"fmt"
 )
 
 /*Computer represents a basic cpu simulation */
 type Computer struct {
-	ip    int
-	mem   []int
-	input chan int
-}
-
-/*Output represents the computer output */
-type Output struct {
-	Out int
+	ip            int
+	mem           []int
+	input, output chan int
+	closed        bool
 }
 
 /*Next executes the next instruction, and returns the next output, if any */
-func (c *Computer) Next() (*Output, error) {
+func (c *Computer) Next() error {
 	op := c.mem[c.ip]
 	posOneMode := op%1000 >= 100
 	posTwoMode := op%10000 >= 1000
@@ -58,7 +55,7 @@ func (c *Computer) Next() (*Output, error) {
 		c.ip += 2
 	case 4:
 		c.ip += 2
-		return &Output{arg1}, nil
+		c.output <- arg1
 	case 5:
 		if arg1 != 0 {
 			c.ip = arg2
@@ -86,23 +83,52 @@ func (c *Computer) Next() (*Output, error) {
 		}
 		c.ip += 4
 	case 99:
-		return nil, errors.New("program halted")
+		close(c.output)
+		return errors.New("program halted")
 	default:
-		return nil, errors.New("massive error")
+		close(c.output)
+		return errors.New("massive error")
 	}
 
-	return nil, nil
+	return nil
 }
 
 /*LoadInstructions - this initializes the computer with instructions */
 func (c *Computer) LoadInstructions(instructions []int) {
 	c.mem = instructions
 	c.input = make(chan int)
+	c.output = make(chan int)
 }
 
 /*Type - Please run this in another goroutine lol*/
 func (c *Computer) Type(in int) {
 	c.input <- in
+}
+
+/*TypeRepeat - like Type but just spams the computer with the same input*/
+func (c *Computer) TypeRepeat(in int) {
+	for !c.closed {
+		c.Type(in)
+	}
+}
+
+/*Read - this would also be helpful to run in another goroutine haha */
+func (c *Computer) Read() (int, bool) {
+	out, ok := <-c.output
+	return out, ok
+}
+
+/*Poll - reads from the output repeatedly */
+func (c *Computer) Poll() {
+	var out int
+	ok := true
+	for {
+		out, ok = c.Read()
+		if !ok {
+			break
+		}
+		fmt.Printf("Output: %d\n", out)
+	}
 }
 
 /*GetMem - Gets the memory value at the index*/
@@ -112,6 +138,12 @@ func (c *Computer) GetMem(at int) int {
 
 func (c *Computer) requestInput() int {
 	return <-c.input
+}
+
+/*Close the computer when you are done with it */
+func (c *Computer) Close() {
+	c.closed = true
+	close(c.input)
 }
 
 func getNumArgs(opcode int) int {

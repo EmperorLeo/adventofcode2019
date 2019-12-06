@@ -37,8 +37,9 @@ func compute(noun, verb int) int {
 	computer.LoadInstructions(ints)
 	var err error
 	for err == nil {
-		_, err = computer.Next()
+		err = computer.Next()
 	}
 
+	computer.Close()
 	return computer.GetMem(0)
 }

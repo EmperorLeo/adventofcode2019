@@ -12,33 +12,30 @@ import (
 func Silver() {
 	computer := makeComputer()
 	var err error
-	var out *util.Output
-	go computer.Type(1)
+	go computer.TypeRepeat(1)
+	go computer.Poll()
+
 	for err == nil {
-		out, err = computer.Next()
-		if out != nil {
-			go computer.Type(1)
-			fmt.Printf("Output: %d\n", out.Out)
-		}
+		err = computer.Next()
 	}
 
 	fmt.Printf("Program Terminated: Reason - %s\n", err.Error())
+	// computer.Close()
 }
 
-/*Gold - Part 1 */
+/*Gold - Part 2 */
 func Gold() {
 	computer := makeComputer()
 	var err error
-	var out *util.Output
 	go computer.Type(5)
+	go computer.Poll()
+
 	for err == nil {
-		out, err = computer.Next()
-		if out != nil {
-			fmt.Printf("Output: %d\n", out.Out)
-		}
+		err = computer.Next()
 	}
 
 	fmt.Printf("Program Terminated: Reason - %s\n", err.Error())
+	// computer.Close()
 }
 
 func makeComputer() *util.Computer {
