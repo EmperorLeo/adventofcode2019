@@ -20,7 +20,7 @@ func Silver() {
 	}
 
 	fmt.Printf("Program Terminated: Reason - %s\n", err.Error())
-	// computer.Close()
+	// Cannot close the computer when type/repeating, since the input channel will be closed while we are typing to it
 }
 
 /*Gold - Part 2 */
@@ -35,7 +35,7 @@ func Gold() {
 	}
 
 	fmt.Printf("Program Terminated: Reason - %s\n", err.Error())
-	// computer.Close()
+	computer.Close()
 }
 
 func makeComputer() *util.Computer {

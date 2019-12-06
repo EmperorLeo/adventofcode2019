@@ -10,7 +10,6 @@ type Computer struct {
 	ip            int
 	mem           []int
 	input, output chan int
-	closed        bool
 }
 
 /*Next executes the next instruction, and returns the next output, if any */
@@ -107,7 +106,7 @@ func (c *Computer) Type(in int) {
 
 /*TypeRepeat - like Type but just spams the computer with the same input*/
 func (c *Computer) TypeRepeat(in int) {
-	for !c.closed {
+	for {
 		c.Type(in)
 	}
 }
@@ -142,7 +141,7 @@ func (c *Computer) requestInput() int {
 
 /*Close the computer when you are done with it */
 func (c *Computer) Close() {
-	c.closed = true
+
 	close(c.input)
 }
 
