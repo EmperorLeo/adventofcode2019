@@ -1,0 +1,2 @@
+Max possible signal: 338603 
+Max possible signal in feedback loop: 63103596 

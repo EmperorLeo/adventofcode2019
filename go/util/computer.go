@@ -111,6 +111,14 @@ func (c *Computer) TypeRepeat(in int) {
 	}
 }
 
+/*Run the computer until it halts*/
+func (c *Computer) Run() {
+	var err error
+	for err == nil {
+		err = c.Next()
+	}
+}
+
 /*Read - this would also be helpful to run in another goroutine haha */
 func (c *Computer) Read() (int, bool) {
 	out, ok := <-c.output
@@ -141,7 +149,6 @@ func (c *Computer) requestInput() int {
 
 /*Close the computer when you are done with it */
 func (c *Computer) Close() {
-
 	close(c.input)
 }
 

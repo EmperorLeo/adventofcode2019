@@ -1,8 +1,8 @@
 package main
 
-import "github.com/EmperorLeo/adventofcode2019/day5"
+import "github.com/EmperorLeo/adventofcode2019/day7"
 
 func main() {
-	day5.Silver()
-	day5.Gold()
+	day7.Silver()
+	day7.Gold()
 }
