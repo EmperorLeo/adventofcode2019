@@ -18,7 +18,7 @@ func TestGetFewestZeroesValueTwo(t *testing.T) {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2,
 	}, 5, 4)
-	if ans != 25 {
+	if ans != 30 {
 		t.Logf("Expected 30, got %d\n", ans)
 		t.FailNow()
 	}
