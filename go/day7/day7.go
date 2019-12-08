@@ -8,6 +8,7 @@ import (
 	"github.com/EmperorLeo/adventofcode2019/util"
 )
 
+/*Silver - Part 1 */
 func Silver() {
 	nums := strings.Split(util.ReadLines(7)[0], ",")
 	amps := make([]*util.Computer, 5)
@@ -18,13 +19,13 @@ func Silver() {
 		for i := 0; i < 5; i++ {
 			amps[i] = makeComputer(nums)
 			defer amps[i].Close()
+			amps[i].Type(combo[i])
 			go amps[i].Run()
 		}
 
 		var prevAmp *util.Computer
-		for i, curAmp := range amps {
-			// fmt.Printf("Hello %d\n", i)
-			go provideInput(curAmp, prevAmp, true, combo[i], 0)
+		for _, curAmp := range amps {
+			go provideInput(curAmp, prevAmp, 0)
 			prevAmp = curAmp
 		}
 
@@ -39,6 +40,7 @@ func Silver() {
 	fmt.Printf("Max possible signal: %d \n", maxSignal)
 }
 
+/*Gold - Part 2 */
 func Gold() {
 	nums := strings.Split(util.ReadLines(7)[0], ",")
 	amps := make([]*util.Computer, 5)
@@ -49,6 +51,7 @@ func Gold() {
 		// remake the amps for each combo, i dont really want to deal with resetting instructions, input, and output
 		for i := 0; i < 5; i++ {
 			amps[i] = makeComputer(nums)
+			amps[i].Type(combo[i])
 			// cant defer closing here cause this is the main thread and i could accidentally write to a closed channel
 			// I'm too lazy to make ANOTHER goroutine just to close this guy
 			go amps[i].Run()
@@ -56,11 +59,10 @@ func Gold() {
 
 		var out, outTemp int
 		ok := true
-		// I'm only including the round so that we know to type the setting on round 1
-		for round := 1; ok; round++ {
+		for ok {
 			var prevAmp *util.Computer
-			for i, curAmp := range amps {
-				go provideInput(curAmp, prevAmp, round == 1, combo[i], out)
+			for _, curAmp := range amps {
+				go provideInput(curAmp, prevAmp, out)
 				prevAmp = curAmp
 			}
 
@@ -78,10 +80,7 @@ func Gold() {
 	fmt.Printf("Max possible signal in feedback loop: %d \n", maxSignal)
 }
 
-func provideInput(amp, prevAmp *util.Computer, shouldTypeSetting bool, setting, initial int) {
-	if shouldTypeSetting {
-		amp.Type(setting)
-	}
+func provideInput(amp, prevAmp *util.Computer, initial int) {
 	if prevAmp != nil {
 		out, ok := prevAmp.Read()
 		if !ok {

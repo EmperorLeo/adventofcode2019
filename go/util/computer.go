@@ -95,7 +95,8 @@ func (c *Computer) Next() error {
 /*LoadInstructions - this initializes the computer with instructions */
 func (c *Computer) LoadInstructions(instructions []int) {
 	c.mem = instructions
-	c.input = make(chan int)
+	// Buffer the input channel so I can immediately type to it
+	c.input = make(chan int, 1)
 	c.output = make(chan int)
 }
 
