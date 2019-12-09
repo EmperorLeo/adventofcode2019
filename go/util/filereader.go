@@ -2,8 +2,11 @@ package util
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 )
 
 func ReadLines(day int) []string {
@@ -21,4 +24,45 @@ func ReadLines(day int) []string {
 	}
 
 	return lines
+}
+
+func ReadIntcodeInstructions(day int) []int {
+	fileName := fmt.Sprintf("../input/day%d.txt", day)
+	file, err := os.Open(fileName)
+	defer file.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(commaSplitFunc)
+	// scanner.Split(bufio.)
+	var ints []int
+	for scanner.Scan() {
+		num, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			log.Fatalf("provide some better input pls. Error = %s with num %d", err.Error(), num)
+		}
+		ints = append(ints, num)
+	}
+
+	return ints
+}
+
+func commaSplitFunc(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+
+	commaSearchBytes := []byte(",")
+
+	if i := bytes.Index(data, commaSearchBytes); i >= 0 {
+		return i + len(commaSearchBytes), data[0:i], nil
+	}
+
+	if atEOF {
+		return len(data), data, nil
+	}
+
+	return 0, nil, nil
 }

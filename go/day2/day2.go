@@ -2,8 +2,6 @@ package day2
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/EmperorLeo/adventofcode2019/util"
 )
@@ -22,19 +20,12 @@ func Gold() {
 }
 
 func compute(noun, verb int) int {
-	input := util.ReadLines(2)[0]
-	strInts := strings.Split(input, ",")
-	ints := make([]int, len(strInts))
-	for n := range strInts {
-		i, _ := strconv.Atoi(strInts[n])
-		ints[n] = i
-	}
+	ints := util.ReadIntcodeInstructions(2)
 
 	ints[1] = noun
 	ints[2] = verb
 
-	computer := util.Computer{}
-	computer.LoadInstructions(ints)
+	computer := util.NewComputer(ints, 0)
 	var err error
 	for err == nil {
 		err = computer.Next()

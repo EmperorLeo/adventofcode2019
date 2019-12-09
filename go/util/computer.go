@@ -7,9 +7,16 @@ import (
 
 /*Computer represents a basic cpu simulation */
 type Computer struct {
-	ip            int
+	ip, id        int
 	mem           []int
 	input, output chan int
+}
+
+/*NewComputer creates a new instance of the computer*/
+func NewComputer(instructions []int, id int) *Computer {
+	copyOfInstructions := make([]int, len(instructions))
+	copy(copyOfInstructions, instructions)
+	return &Computer{0, id, copyOfInstructions, make(chan int, 1), make(chan int)}
 }
 
 /*Next executes the next instruction, and returns the next output, if any */
@@ -41,6 +48,8 @@ func (c *Computer) Next() error {
 			arg3 = c.mem[arg3]
 		}
 	}
+
+	// fmt.Printf("OP %d with Arg 1=%d, Arg 2=%d, Arg 3=%d\n", op, arg1, arg2, arg3)
 
 	switch opcode {
 	case 1:
@@ -92,23 +101,21 @@ func (c *Computer) Next() error {
 	return nil
 }
 
-/*LoadInstructions - this initializes the computer with instructions */
-func (c *Computer) LoadInstructions(instructions []int) {
-	c.mem = instructions
-	// Buffer the input channel so I can immediately type to it
-	c.input = make(chan int, 1)
-	c.output = make(chan int)
-}
-
 /*Type - Please run this in another goroutine lol*/
 func (c *Computer) Type(in int) {
 	c.input <- in
 }
 
 /*TypeRepeat - like Type but just spams the computer with the same input*/
-func (c *Computer) TypeRepeat(in int) {
-	for {
-		c.Type(in)
+func (c *Computer) TypeRepeat(in int, stop <-chan bool) {
+	var end bool
+	for !end {
+		select {
+		case <-stop:
+			end = true
+		default:
+			c.Type(in)
+		}
 	}
 }
 
@@ -150,6 +157,14 @@ func (c *Computer) requestInput() int {
 
 /*Close the computer when you are done with it */
 func (c *Computer) Close() {
+	var end bool
+	for !end {
+		select {
+		case <-c.input:
+		default:
+			end = true
+		}
+	}
 	close(c.input)
 }
 

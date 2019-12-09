@@ -2,28 +2,28 @@ package day7
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/EmperorLeo/adventofcode2019/util"
 )
 
 /*Silver - Part 1 */
 func Silver() {
-	nums := strings.Split(util.ReadLines(7)[0], ",")
+	instructions := util.ReadIntcodeInstructions(7)
+
 	amps := make([]*util.Computer, 5)
 	var maxSignal int
 	combos := getPossibleCombos(0)
 	for _, combo := range combos {
 		// remake the amps for each combo, i dont really want to deal with resetting instructions, input, and output
 		for i := 0; i < 5; i++ {
-			amps[i] = makeComputer(nums)
+			amps[i] = util.NewComputer(instructions, i)
 			defer amps[i].Close()
 			amps[i].Type(combo[i])
 			go amps[i].Run()
 		}
 
 		var prevAmp *util.Computer
+		// fmt.Println("Before for loop")
 		for _, curAmp := range amps {
 			go provideInput(curAmp, prevAmp, 0)
 			prevAmp = curAmp
@@ -42,7 +42,6 @@ func Silver() {
 
 /*Gold - Part 2 */
 func Gold() {
-	nums := strings.Split(util.ReadLines(7)[0], ",")
 	amps := make([]*util.Computer, 5)
 	var maxSignal int
 	combos := getPossibleCombos(5)
@@ -50,10 +49,9 @@ func Gold() {
 	for _, combo := range combos {
 		// remake the amps for each combo, i dont really want to deal with resetting instructions, input, and output
 		for i := 0; i < 5; i++ {
-			amps[i] = makeComputer(nums)
+			amps[i] = util.NewComputer(util.ReadIntcodeInstructions(7), i)
 			amps[i].Type(combo[i])
-			// cant defer closing here cause this is the main thread and i could accidentally write to a closed channel
-			// I'm too lazy to make ANOTHER goroutine just to close this guy
+			defer amps[i].Close()
 			go amps[i].Run()
 		}
 
@@ -90,17 +88,6 @@ func provideInput(amp, prevAmp *util.Computer, initial int) {
 	} else {
 		amp.Type(initial)
 	}
-}
-
-func makeComputer(input []string) *util.Computer {
-	ints := make([]int, len(input))
-	for n := range input {
-		i, _ := strconv.Atoi(input[n])
-		ints[n] = i
-	}
-	computer := &util.Computer{}
-	computer.LoadInstructions(ints)
-	return computer
 }
 
 func getPossibleCombos(offset int) [][]int {
