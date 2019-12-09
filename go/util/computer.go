@@ -5,51 +5,65 @@ import (
 	"fmt"
 )
 
+const (
+	memSpaceMultiplier int = 50
+)
+
 /*Computer represents a basic cpu simulation */
 type Computer struct {
-	ip, id        int
-	mem           []int
-	input, output chan int
+	ip, relativeBase, id int
+	mem                  []int
+	input, output        chan int
 }
 
 /*NewComputer creates a new instance of the computer*/
 func NewComputer(instructions []int, id int) *Computer {
-	copyOfInstructions := make([]int, len(instructions))
-	copy(copyOfInstructions, instructions)
-	return &Computer{0, id, copyOfInstructions, make(chan int, 1), make(chan int)}
+	// Memory space should be much larger than the instruction size
+	memory := make([]int, len(instructions)*memSpaceMultiplier)
+	copy(memory, instructions)
+	return &Computer{0, 0, id, memory, make(chan int, 1), make(chan int)}
 }
 
 /*Next executes the next instruction, and returns the next output, if any */
 func (c *Computer) Next() error {
 	op := c.mem[c.ip]
-	posOneMode := op%1000 >= 100
-	posTwoMode := op%10000 >= 1000
-	posThreeMode := op%100000 >= 10000
+	posOneMode := (op % 1000) / 100
+	posTwoMode := (op % 10000) / 1000
+	posThreeMode := (op % 100000) / 10000
 
 	opcode := op % 100
 	numArgs := getNumArgs(opcode)
 
+	// fmt.Printf("Op = %d\n", op)
+
 	var arg1, arg2, arg3 int
 	if numArgs >= 1 && c.ip+1 <= len(c.mem)-1 {
 		arg1 = c.mem[c.ip+1]
-		if !posOneMode && !alwaysImmediateMode(opcode, 1) {
+		if posOneMode == 2 {
+			arg1 = c.relativeBase + arg1
+		}
+		if posOneMode != 1 && !alwaysImmediateMode(opcode, 1) {
 			arg1 = c.mem[arg1]
 		}
 	}
 	if numArgs >= 2 && c.ip+2 <= len(c.mem)-1 {
 		arg2 = c.mem[c.ip+2]
-		if !posTwoMode && !alwaysImmediateMode(opcode, 2) {
+		if posTwoMode == 2 {
+			arg2 = c.relativeBase + arg2
+		}
+		if posTwoMode != 1 && !alwaysImmediateMode(opcode, 2) {
 			arg2 = c.mem[arg2]
 		}
 	}
 	if numArgs >= 3 && c.ip+3 <= len(c.mem)-1 {
 		arg3 = c.mem[c.ip+3]
-		if !posThreeMode && !alwaysImmediateMode(opcode, 3) {
+		if posThreeMode == 2 {
+			arg3 = c.relativeBase + arg3
+		}
+		if posThreeMode != 1 && !alwaysImmediateMode(opcode, 3) {
 			arg3 = c.mem[arg3]
 		}
 	}
-
-	// fmt.Printf("OP %d with Arg 1=%d, Arg 2=%d, Arg 3=%d\n", op, arg1, arg2, arg3)
 
 	switch opcode {
 	case 1:
@@ -90,6 +104,9 @@ func (c *Computer) Next() error {
 			c.mem[arg3] = 0
 		}
 		c.ip += 4
+	case 9:
+		c.relativeBase += arg1
+		c.ip += 2
 	case 99:
 		close(c.output)
 		return errors.New("program halted")
@@ -172,6 +189,8 @@ func getNumArgs(opcode int) int {
 	var numArgs int
 	switch opcode {
 	case 3:
+		fallthrough
+	case 9:
 		fallthrough
 	case 4:
 		numArgs = 1
