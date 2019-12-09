@@ -163,6 +163,21 @@ func (c *Computer) Poll() {
 	}
 }
 
+/*PollResult - reads from the output repeatedly and then returns the result of polling after the execution is finished*/
+func (c *Computer) PollResult() []int {
+	output := []int{}
+	var out int
+	ok := true
+	for {
+		out, ok = c.Read()
+		if !ok {
+			break
+		}
+		output = append(output, out)
+	}
+	return output
+}
+
 /*GetMem - Gets the memory value at the index*/
 func (c *Computer) GetMem(at int) int {
 	return c.mem[at]
