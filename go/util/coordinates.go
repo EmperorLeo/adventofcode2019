@@ -84,3 +84,56 @@ func (c Coord) Print() {
 func (l Line) Print() {
 	fmt.Printf("{%d,%d} -> {%d, %d} Is horizontal = %v\n", l.P1.X, l.P1.Y, l.P2.X, l.P2.Y, l.P1.Y == l.P2.Y)
 }
+
+func (c Coord) GetQuadrant() int {
+	if c.X >= 0 && c.Y < 0 {
+		return 1
+	} else if c.X >= 0 && c.Y >= 0 {
+		return 2
+	} else if c.X < 0 && c.Y >= 0 {
+		return 3
+	} else {
+		return 4
+	}
+}
+
+func (c Coord) SlopeWith(o Coord) Coord {
+	diffY := o.Y - c.Y
+	diffX := o.X - c.X
+	if diffY == 0 {
+		return Coord{diffX / Abs(diffX), 0}
+	} else if diffX == 0 {
+		return Coord{0, diffY / Abs(diffY)}
+	}
+	reducer := gcf(Abs(diffX), Abs(diffY))
+	diffY /= reducer
+	diffX /= reducer
+
+	return Coord{diffX, diffY}
+}
+
+func (c Coord) AbsoluteSlope() float64 {
+	if c.X == 0 {
+		return math.Inf(1)
+	}
+	return math.Abs(float64(c.Y) / float64(c.X))
+}
+
+func gcf(a, b int) int {
+	for a != b {
+		if a > b {
+			a -= b
+		} else {
+			b -= a
+		}
+	}
+
+	return a
+}
+
+func Abs(x int) int {
+	if x >= 0 {
+		return x
+	}
+	return -x
+}

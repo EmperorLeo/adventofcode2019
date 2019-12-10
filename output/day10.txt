@@ -1,0 +1,2 @@
+The best asteroid for the station is at (28, 29) with 340 asteroids in sight
+200 asteroid value (26, 28) = 2628
