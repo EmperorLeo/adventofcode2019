@@ -16,6 +16,19 @@ type Computer struct {
 	input, output        chan int
 }
 
+/*IComputer is used for testing mocks*/
+type IComputer interface {
+	Next() error
+	Run()
+	Read() (int, bool)
+	Poll()
+	PollResult() []int
+	Type(i int)
+	TypeRepeat(i int, stop <-chan bool)
+	GetMem(i int) int
+	Close()
+}
+
 /*NewComputer creates a new instance of the computer*/
 func NewComputer(instructions []int, id int) *Computer {
 	// Memory space should be much larger than the instruction size

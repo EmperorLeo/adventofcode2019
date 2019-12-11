@@ -17,19 +17,33 @@ const (
 	west  = iota
 )
 
+/*Silver - Part 1*/
 func Silver() {
 	input := util.ReadIntcodeInstructions(11)
 
-	panelMap := getPaintedPanels(util.NewComputer(input, 0))
+	panelMap := getPaintedPanels(util.NewComputer(input, 0), 0)
 	count := len(panelMap)
 	fmt.Printf("Intcode robot painted %d panels \n", count)
+
+	grid := mapPanels(panelMap)
+
+	fmt.Println("What the hell is this shit?")
+	gridPrinter(grid)
 }
 
+/*Gold - Part 2*/
 func Gold() {
+	input := util.ReadIntcodeInstructions(11)
 
+	panelMap := getPaintedPanels(util.NewComputer(input, 0), 1)
+
+	grid := mapPanels(panelMap)
+
+	fmt.Println("Registration identifier printed below")
+	gridPrinter(grid)
 }
 
-func getPaintedPanels(computer *util.Computer) map[util.Coord]panel {
+func getPaintedPanels(computer util.IComputer, startingColor int) map[util.Coord]panel {
 
 	directionLeftMap := map[int]int{
 		north: west,
@@ -52,6 +66,7 @@ func getPaintedPanels(computer *util.Computer) map[util.Coord]panel {
 	curDirection := north
 
 	panelMap := map[util.Coord]panel{}
+	panelMap[curCoord] = panel{startingColor, 0}
 
 	go computer.Run()
 
@@ -78,11 +93,11 @@ func getPaintedPanels(computer *util.Computer) map[util.Coord]panel {
 
 		switch curDirection {
 		case north:
-			curCoord.Y++
+			curCoord.Y--
 		case east:
 			curCoord.X++
 		case south:
-			curCoord.Y--
+			curCoord.Y++
 		case west:
 			curCoord.X--
 		default:
@@ -91,4 +106,57 @@ func getPaintedPanels(computer *util.Computer) map[util.Coord]panel {
 	}
 
 	return panelMap
+}
+
+func mapPanels(panels map[util.Coord]panel) [][]int {
+	var minX, maxX, minY, maxY int
+
+	for c := range panels {
+		if c.X < minX {
+			minX = c.X
+		}
+		if c.X > maxX {
+			maxX = c.X
+		}
+		if c.Y < minY {
+			minY = c.Y
+		}
+		if c.Y > maxY {
+			maxY = c.Y
+		}
+	}
+
+	var xOffset, yOffset int
+	if minX < 0 {
+		xOffset = -minX
+	}
+	if minY < 0 {
+		yOffset = -minY
+	}
+	maxX++
+	maxY++
+
+	grid := make([][]int, maxY+yOffset)
+	for i := range grid {
+		grid[i] = make([]int, maxX+xOffset)
+	}
+
+	for c, p := range panels {
+		grid[c.Y+yOffset][c.X+xOffset] = p.color
+	}
+
+	return grid
+}
+
+func gridPrinter(grid [][]int) {
+	for _, r := range grid {
+		for _, p := range r {
+			if p == 1 {
+				fmt.Print("█")
+			} else {
+				fmt.Print(" ")
+			}
+		}
+		fmt.Println()
+	}
 }
