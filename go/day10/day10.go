@@ -3,6 +3,7 @@ package day10
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/EmperorLeo/adventofcode2019/util"
 )
@@ -19,14 +20,17 @@ type asteroidNode struct {
 }
 
 func Silver() {
+	now := time.Now()
 	input := util.ReadLines(10)
 
 	ans, count, _ := getBestStationPosition(input)
 
 	fmt.Printf("The best asteroid for the station is at (%d, %d) with %d asteroids in sight\n", ans.X, ans.Y, count)
+	fmt.Printf("Time elapsed: %v\n", time.Since(now))
 }
 
 func Gold() {
+	now := time.Now()
 	input := util.ReadLines(10)
 
 	station, _, asteroids := getBestStationPosition(input)
@@ -34,6 +38,7 @@ func Gold() {
 	result := getNthAsteroid(station, asteroids, 200)
 
 	fmt.Printf("200 asteroid value (%d, %d) = %d\n", result.X, result.Y, result.X*100+result.Y)
+	fmt.Printf("Time elapsed: %v\n", time.Since(now))
 }
 
 func getBestStationPosition(field []string) (util.Coord, int, []util.Coord) {
