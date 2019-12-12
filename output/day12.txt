@@ -1,0 +1,2 @@
+The total energy in the system is 6220
+PX = 113028, PY = 167624, PZ = 231614, OX = 113028, OY = 167624, OZ = 231614

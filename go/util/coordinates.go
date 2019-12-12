@@ -9,6 +9,14 @@ type Coord struct {
 	X, Y int
 }
 
+type Coord3 struct {
+	X, Y, Z int
+}
+
+type PosAndVector3 struct {
+	Pos, Vec *Coord3
+}
+
 type Line struct {
 	P1, P2 Coord
 }
@@ -129,11 +137,4 @@ func gcf(a, b int) int {
 	}
 
 	return a
-}
-
-func Abs(x int) int {
-	if x >= 0 {
-		return x
-	}
-	return -x
 }
